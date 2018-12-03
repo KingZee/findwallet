@@ -4,6 +4,9 @@
 var argv = require('yargs').argv;
 const glob = require('fast-glob');
 const fs = require('fs');
+const crypto = require('crypto');
+const bs58 = require('bs58');
+const wif = require('wif');
 
 //findwallet -i C:/mypath/ -o output.txt 
 console.log("Zee's Wallet Finder.\r\n");
@@ -71,6 +74,17 @@ function checkWallet(files){
 						out_file.write("Un-encrypted wallet : "+path+"\r\n");
 					found++;
 					console.log("Found unencrypted wallet at : "+path);
+					var keys = getPrivKeys(buffer_hex);
+					var folder = path.match(/.*\//g)[0];
+					try{
+						fs.writeFileSync(folder+found+'compressed.txt',keys.compressed.join('\r\n'));
+						fs.writeFileSync(folder+found+'uncompressed.txt',keys.uncompressed.join('\r\n'));
+						console.log("Wrote private keys to "+folder);
+					} catch(err){
+						console.log("Error writing keys : "+err+". Logging them to console instead");
+						keys.compressed.forEach(el => console.log(el));
+						keys.uncompressed.forEach(el => console.log(el));
+					}
 				}
 			}
 		}
@@ -78,10 +92,35 @@ function checkWallet(files){
 	
 	if(argv.o)
 		out_file.end();
-	console.log("Done! Found "+found+"wallets!");
+	console.log("Done! Found "+found+" wallets!");
 	
 	if(found){
 		console.log("Kindly donate to 1KingZeeW97uLvngcUA3R6QJx18Fn78ddb if I helped you!");
 		console.log("https://github.com/KingZee/findwallet");
 	}
 }
+
+function getPrivKeys(buffer){
+	
+	var PrivRegex = /00f70001d63081d30201010420(.*?)a08185308182020101302c06072a8648ce3d0101022100/gm;
+	var HexArr = [], matches;
+	
+	while((matches = PrivRegex.exec(buffer)) != null)
+			HexArr.push(matches[1]);
+	
+	var CompPrivArr = [];	//Compressed keys
+	var PrivArr = HexArr.map(function (hex){		//Uncompressed keys
+		if(hex.length == 64){
+			CompPrivArr.push(wif.encode(128, Buffer.from(hex, 'hex'), true));
+			var mainhex = '80'+hex;
+			var privateKey = Buffer.from('80'+hex,'hex');
+			var hash = crypto.createHash('sha256').update(privateKey).digest();
+			var otherhash = crypto.createHash('sha256').update(hash).digest('hex');
+			var fin = bs58.encode(Buffer.from(mainhex + otherhash.substring(0, 8), 'hex'));
+			return fin;
+		}
+	});
+	
+	return {compressed : CompPrivArr, uncompressed : PrivArr};
+}
+

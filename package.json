@@ -1,7 +1,7 @@
 {
   "name": "findwallet",
-  "homepage" : "https://github.com/KingZee/findwallet",
-  "version": "1.0.0",
+  "homepage": "https://github.com/KingZee/findwallet",
+  "version": "2.0.0",
   "description": "Crawl through your files and find any bitcoin core wallet files.",
   "main": "app.js",
   "scripts": {
@@ -10,15 +10,22 @@
   "author": "KingZee",
   "license": "GPL-3.0",
   "dependencies": {
+    "bs58": "^4.0.1",
     "fast-glob": "^2.2.4",
+    "wif": "^2.0.6",
     "yargs": "^12.0.4"
   },
   "bin": {
     "findwallet": "./app.js"
   },
-  "keywords" : ["bitcoin", "wallet", "recovery", "utility"],
+  "keywords": [
+    "bitcoin",
+    "wallet",
+    "recovery",
+    "utility"
+  ],
   "repository": {
-  "type" : "git",
-  "url" : "https://github.com/KingZee/findwallet.git"
+    "type": "git",
+    "url": "https://github.com/KingZee/findwallet.git"
   }
 }
